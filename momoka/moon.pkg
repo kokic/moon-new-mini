@@ -1,0 +1,8 @@
+import {
+  "moonbitlang/async",
+  "kokic/moon-new-mini" @momoka,
+}
+
+options(
+  "is-main": true,
+)

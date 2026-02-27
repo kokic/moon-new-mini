@@ -1,0 +1,7 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/async/stdio",
+  "moonbitlang/x/fs",
+  "moonbitlang/x/path",
+  "moonbitlang/x/sys",
+}
