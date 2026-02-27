@@ -47,11 +47,9 @@ fn ensure_dir(path : String) -> Result[Unit, String] {
       Err(err) => Err("failed to inspect directory \{path}: \{err}")
     }
   } else {
-    let create_result = try? @fs.create_dir(path)
-    match create_result {
-      Ok(_) => Ok(())
-      Err(err) => Err("failed to create directory \{path}: \{err}")
-    }
+    Result::map_err(try? @fs.create_dir(path), err => {
+      "failed to create directory \{path}: \{err}"
+    })
   }
 }
 

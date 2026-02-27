@@ -37,10 +37,7 @@ async fn ensure_username() -> Result[String, String] {
         return Err("failed to read username from stdin")
       }
       let content = "username \{username}"
-      match write_string_file(preferred_file, content) {
-        Ok(_) => Ok(username)
-        Err(err) => Err(err)
-      }
+      Result::map(write_string_file(preferred_file, content), _ => username)
     }
   }
 }

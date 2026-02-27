@@ -104,7 +104,9 @@ pub async fn export_main() -> Unit {
     [_, .. args] =>
       match run(args) {
         Ok(project_dir) =>
-          println("created moon.mod.json and moon.pkg in \{project_dir}")
+          println(
+            "created moon.mod.json, moon.pkg and .gitignore in \{project_dir}",
+          )
         Err(err) => {
           println(err)
           @sys.exit(1)

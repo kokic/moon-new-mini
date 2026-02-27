@@ -24,9 +24,7 @@ fn ensure_dir_recursive(path : String) -> Result[Unit, String] {
 
 ///|
 fn write_string_file(path : String, content : String) -> Result[Unit, String] {
-  let write_result = try? @fs.write_string_to_file(path, content)
-  match write_result {
-    Ok(_) => Ok(())
-    Err(err) => Err("failed to write file \{path}: \{err}")
-  }
+  Result::map_err(try? @fs.write_string_to_file(path, content), err => {
+    "failed to write file \{path}: \{err}"
+  })
 }

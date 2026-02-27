@@ -9,18 +9,12 @@ fn create_project(
     Err(err) => return Err(err)
   }
   let module_name = module_name_from_project_dir(project_dir)
-  let license = match config.license {
-    Some(value) => value
-    None => "AGPL-3.0"
-  }
-  let repository_hosting = match config.repository_hosting {
-    Some(value) => value
-    None => "github.com"
-  }
-  let preferred_target = match config.preferred_target {
-    Some(value) => value
-    None => "native"
-  }
+  let license = Option::unwrap_or(config.license, "AGPL-3.0")
+  let repository_hosting = Option::unwrap_or(
+    config.repository_hosting,
+    "github.com",
+  )
+  let preferred_target = Option::unwrap_or(config.preferred_target, "native")
   let moon_mod_content = file_content_moon_mod_json(
     username~,
     module_name~,
