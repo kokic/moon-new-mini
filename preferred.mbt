@@ -29,11 +29,9 @@ fn load_preferred_username(preferred_file : String) -> String? {
   if !@fs.path_exists(preferred_file) {
     None
   } else {
-    let read_result = try? @fs.read_file_to_string(preferred_file)
-    match read_result {
-      Ok(content) => parse_preferred_username(content)
-      Err(_) => None
-    }
+    (try? @fs.read_file_to_string(preferred_file))
+    .to_option()
+    .bind(content => parse_preferred_username(content))
   }
 }
 

@@ -65,10 +65,8 @@ fn parse_cli_args(args : ArrayView[String]) -> Result[CliConfig, String] {
       return Err("unexpected positional argument: \{arg}\n\{usage_text()}")
     }
   }
-  match path {
-    Some(path) => Ok({ path, license, repository_hosting, preferred_target })
-    None => Err(usage_text())
-  }
+  guard path is Some(path) else { return Err(usage_text()) }
+  Ok({ path, license, repository_hosting, preferred_target })
 }
 
 ///|
