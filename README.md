@@ -1,6 +1,6 @@
 # Momoka
 
-Create a minimal <u>Mo</u>onBit <u>mo</u>dule <u>か</u>?. 
+Create a minimal **Mo**onBit **mo**dule **か**? 
 
 ## Example
 
