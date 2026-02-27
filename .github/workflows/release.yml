@@ -54,16 +54,28 @@ jobs:
       - name: Build native release binary
         run: moon build --release -j 1 momoka
 
-      - name: Package binary
-        id: package
+      - name: Package binary (Windows)
+        if: runner.os == 'Windows'
+        id: package_windows
         shell: pwsh
         run: |
           $ext = "${{ matrix.exe_ext }}"
           $tag = "${{ github.event.release.tag_name }}"
-          $src = "_build/native/release/build/momoka/momoka$ext"
-          if (!(Test-Path $src)) {
-            throw "Build output not found: $src"
+          $buildDir = "_build/native/release/build"
+          if (!(Test-Path $buildDir)) {
+            throw "Build output directory not found: $buildDir"
           }
+
+          $binName = "momoka$ext"
+          $candidates = @(Get-ChildItem -Path $buildDir -Recurse -File |
+            Where-Object { $_.Name -eq $binName } |
+            Sort-Object FullName)
+          if ($candidates.Count -eq 0) {
+            Write-Host "No binary named $binName found under $buildDir"
+            Get-ChildItem -Path $buildDir -Recurse -File | Select-Object -ExpandProperty FullName
+            throw "Build output not found: $binName"
+          }
+          $src = $candidates[0].FullName
 
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           $assetName = "momoka-$tag-${{ matrix.asset_id }}$ext"
@@ -73,7 +85,43 @@ jobs:
           "asset_name=$assetName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "asset_path=$assetPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Upload asset
+      - name: Package binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        id: package_unix
+        shell: bash
+        run: |
+          ext="${{ matrix.exe_ext }}"
+          tag="${{ github.event.release.tag_name }}"
+          build_dir="_build/native/release/build"
+          if [ ! -d "$build_dir" ]; then
+            echo "Build output directory not found: $build_dir"
+            exit 1
+          fi
+
+          bin_name="momoka${ext}"
+          src="$(find "$build_dir" -type f -name "$bin_name" | sort | head -n 1)"
+          if [ -z "$src" ]; then
+            echo "No binary named $bin_name found under $build_dir"
+            find "$build_dir" -type f
+            exit 1
+          fi
+
+          mkdir -p dist
+          asset_name="momoka-${tag}-${{ matrix.asset_id }}${ext}"
+          asset_path="dist/$asset_name"
+          cp "$src" "$asset_path"
+
+          echo "asset_name=$asset_name" >> "$GITHUB_OUTPUT"
+          echo "asset_path=$asset_path" >> "$GITHUB_OUTPUT"
+
+      - name: Upload asset (Windows)
+        if: runner.os == 'Windows'
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.package.outputs.asset_path }}
+          files: ${{ steps.package_windows.outputs.asset_path }}
+
+      - name: Upload asset (Linux/macOS)
+        if: runner.os != 'Windows'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package_unix.outputs.asset_path }}

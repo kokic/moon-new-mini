@@ -1,4 +1,4 @@
 ///|
 async fn main {
-  @momoka.export_main()
+  @mini.export_main()
 }
