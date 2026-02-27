@@ -30,7 +30,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup MoonBit
-        uses: moonbitlang/setup-moonup@v1
+        uses: moonbitlang/core/.github/actions/setup@main
+
+      - name: Verify MoonBit
+        run: moon version
 
       - name: Setup MSVC
         if: runner.os == 'Windows'
