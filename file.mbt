@@ -28,7 +28,6 @@ fn file_content_moon_pkg() -> String {
 ///|
 fn file_content_gitignore() -> String {
   (
-    #|.*/
     #|.DS_Store
     #|_build/
     #|target/

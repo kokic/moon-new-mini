@@ -1,0 +1,76 @@
+name: Release Native Binaries
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    name: ${{ matrix.asset_id }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            asset_id: win-msvc
+            exe_ext: .exe
+          - os: macos-14
+            asset_id: aarch64-apple-darwin
+            exe_ext: ""
+          - os: ubuntu-24.04
+            asset_id: linux
+            exe_ext: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MoonBit
+        uses: moonbitlang/setup-moonup@v1
+
+      - name: Setup MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Verify macOS architecture
+        if: matrix.asset_id == 'aarch64-apple-darwin'
+        shell: bash
+        run: |
+          arch="$(uname -m)"
+          if [ "$arch" != "arm64" ]; then
+            echo "Expected arm64 runner, got $arch"
+            exit 1
+          fi
+
+      - name: Build native release binary
+        run: moon build --release -j 1 momoka
+
+      - name: Package binary
+        id: package
+        shell: pwsh
+        run: |
+          $ext = "${{ matrix.exe_ext }}"
+          $tag = "${{ github.event.release.tag_name }}"
+          $src = "_build/native/release/build/momoka/momoka$ext"
+          if (!(Test-Path $src)) {
+            throw "Build output not found: $src"
+          }
+
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          $assetName = "momoka-$tag-${{ matrix.asset_id }}$ext"
+          $assetPath = Join-Path "dist" $assetName
+          Copy-Item $src $assetPath -Force
+
+          "asset_name=$assetName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "asset_path=$assetPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package.outputs.asset_path }}
