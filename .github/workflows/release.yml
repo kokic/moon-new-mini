@@ -64,7 +64,7 @@ jobs:
 
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           $assetName = "momoka-$tag-${{ matrix.asset_id }}.exe"
-          $assetPath = Join-Path "dist" $assetName
+          $assetPath = "dist/$assetName"
           Copy-Item $src $assetPath -Force
 
           "asset_name=$assetName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -95,9 +95,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.package_windows.outputs.asset_path }}
+          fail_on_unmatched_files: true
 
       - name: Upload asset (Linux/macOS)
         if: runner.os != 'Windows'
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.package_unix.outputs.asset_path }}
+          fail_on_unmatched_files: true
