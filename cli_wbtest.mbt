@@ -29,16 +29,61 @@ test "parse_cli_args invalid option" {
 }
 
 ///|
-test "parse_preferred_username" {
-  guard parse_preferred_username("username kokic") is Some("kokic") else {
-    fail("expected username kokic")
+test "parse_preferred_config key-values" {
+  let preferred = parse_preferred_config(
+    (
+      #|username kokic
+      #|license MIT
+      #|host gitlab.com
+      #|target js
+    ),
+  )
+  assert_eq(preferred.username, Some("kokic"))
+  assert_eq(preferred.license, Some("MIT"))
+  assert_eq(preferred.repository_hosting, Some("gitlab.com"))
+  assert_eq(preferred.preferred_target, Some("js"))
+}
+
+///|
+test "parse_preferred_config username compatibility" {
+  assert_eq(parse_preferred_config("username kokic").username, Some("kokic"))
+  assert_eq(
+    parse_preferred_config("username   mooner  ").username,
+    Some("mooner"),
+  )
+  assert_eq(parse_preferred_config("user kokic").username, None)
+}
+
+///|
+test "preferred_config_to_content" {
+  let preferred : PreferredConfig = {
+    username: Some("kokic"),
+    license: Some("MIT"),
+    repository_hosting: Some("gitlab.com"),
+    preferred_target: Some("js"),
   }
-  guard parse_preferred_username("username   mooner  ") is Some("mooner") else {
-    fail("expected username mooner")
-  }
-  guard parse_preferred_username("user kokic") is None else {
-    fail("expected parse failure")
-  }
+  assert_eq(
+    preferred_config_to_content(preferred),
+    (
+      #|username kokic
+      #|license MIT
+      #|host gitlab.com
+      #|target js
+    ),
+  )
+}
+
+///|
+test "is_preferences_command" {
+  assert_eq(is_preferences_command("prefs"), true)
+  assert_eq(is_preferences_command("config"), true)
+  assert_eq(is_preferences_command("demo"), false)
+}
+
+///|
+test "is_preferences_show_option" {
+  assert_eq(is_preferences_show_option("--show"), true)
+  assert_eq(is_preferences_show_option("show"), false)
 }
 
 ///|

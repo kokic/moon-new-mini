@@ -3,16 +3,23 @@ fn usage_text() -> String {
   (
     #|Create a minimal MoonBit module
     #|
-    #|Usage: momoka <PATH> [OPTIONS]
+    #|Usage:
+    #|  momoka [OPTIONS] <PATH>
+    #|  momoka prefs [--show]
+    #|
+    #|Commands:
+    #|  prefs  Configure default license / host / target, or print with --show [aliases: config]
     #|
     #|Arguments:
     #|  <PATH>  Project directory path
     #|
     #|Options:
-    #|  -l, --license <LICENSE>  License for moon.mod.json [default: AGPL-3.0]
-    #|      --host <HOST>        Repository hosting domain [default: github.com]
-    #|  -t, --target <TARGET>    Preferred target [default: native]
+    #|  -l, --license <LICENSE>  License for moon.mod.json [default: prefs or AGPL-3.0]
+    #|      --host <HOST>        Repository hosting domain [default: prefs or github.com]
+    #|  -t, --target <TARGET>    Preferred target [default: prefs or native]
+    #|      --show               Print current preferences for prefs / config command
     #|  -h, --help               Print help
+    $|\{BANNER_TEXT}
   )
 }
 
@@ -85,11 +92,45 @@ fn home_dir() -> String? {
 }
 
 ///|
+fn is_preferences_command(arg : String) -> Bool {
+  arg == "prefs" || arg == "config"
+}
+
+///|
+fn is_preferences_show_option(arg : String) -> Bool {
+  arg == "--show"
+}
+
+///|
 async fn run(args : ArrayView[String]) -> Result[String, String] {
+  if args.length() > 0 && is_preferences_command(args[0]) {
+    if args.length() == 1 {
+      return configure_preferred_defaults()
+    }
+    if args.length() == 2 && is_preferences_show_option(args[1]) {
+      return show_preferred_defaults()
+    }
+    if args.length() > 1 && args[1] == "--help" {
+      return Err(usage_text())
+    }
+    return Err("unexpected arguments for \{args[0]}\n\{usage_text()}")
+  }
   match parse_cli_args(args) {
     Ok(config) =>
       match ensure_username() {
-        Ok(username) => create_project(config, username)
+        Ok(username) => {
+          let preferred = match home_dir() {
+            Some(home) => load_preferred_config(preferred_file_path(home))
+            None => empty_preferred_config()
+          }
+          match create_project(config, username, preferred) {
+            Ok(project_dir) =>
+              Ok(
+                "created moon.mod.json, moon.pkg and .gitignore in \{project_dir}",
+              )
+            Err(err) => Err(err)
+          }
+        }
         Err(err) => Err(err)
       }
     Err(err) => Err(err)
@@ -101,10 +142,7 @@ pub async fn export_main() -> Unit {
   match @env.args() {
     [_, .. args] =>
       match run(args) {
-        Ok(project_dir) =>
-          println(
-            "created moon.mod.json, moon.pkg and .gitignore in \{project_dir}",
-          )
+        Ok(message) => println(message)
         Err(err) => {
           println(err)
           @sys.exit(1)

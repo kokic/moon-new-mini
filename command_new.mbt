@@ -2,6 +2,7 @@
 fn create_project(
   config : CliConfig,
   username : String,
+  preferred : PreferredConfig,
 ) -> Result[String, String] {
   let project_dir = @path.Path::resolve(config.path).to_string()
   match ensure_dir_recursive(project_dir) {
@@ -9,12 +10,18 @@ fn create_project(
     Err(err) => return Err(err)
   }
   let module_name = module_name_from_project_dir(project_dir)
-  let license = Option::unwrap_or(config.license, "AGPL-3.0")
+  let license = Option::unwrap_or(
+    config.license,
+    Option::unwrap_or(preferred.license, "AGPL-3.0"),
+  )
   let repository_hosting = Option::unwrap_or(
     config.repository_hosting,
-    "github.com",
+    Option::unwrap_or(preferred.repository_hosting, "github.com"),
   )
-  let preferred_target = Option::unwrap_or(config.preferred_target, "native")
+  let preferred_target = Option::unwrap_or(
+    config.preferred_target,
+    Option::unwrap_or(preferred.preferred_target, "native"),
+  )
   let moon_mod_content = file_content_moon_mod_json(
     username~,
     module_name~,

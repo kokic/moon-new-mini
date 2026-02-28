@@ -26,7 +26,8 @@ async fn ensure_username() -> Result[String, String] {
   }
   let preferred_dir = preferred_dir_path(home)
   let preferred_file = preferred_file_path(home)
-  match load_preferred_username(preferred_file) {
+  let preferred = load_preferred_config(preferred_file)
+  match preferred.username {
     Some(username) => Ok(username)
     None => {
       match ensure_dir(preferred_dir) {
@@ -36,8 +37,16 @@ async fn ensure_username() -> Result[String, String] {
       guard prompt_username(5) is Some(username) else {
         return Err("failed to read username from stdin")
       }
-      let content = "username \{username}"
-      Result::map(write_string_file(preferred_file, content), _ => username)
+      let updated_preferred : PreferredConfig = {
+        username: Some(username),
+        license: preferred.license,
+        repository_hosting: preferred.repository_hosting,
+        preferred_target: preferred.preferred_target,
+      }
+      match save_preferred_config(preferred_file, updated_preferred) {
+        Ok(_) => Ok(username)
+        Err(err) => Err(err)
+      }
     }
   }
 }
