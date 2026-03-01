@@ -7,6 +7,7 @@ test "parse_cli_args defaults" {
   assert_eq(config.license, None)
   assert_eq(config.repository_hosting, None)
   assert_eq(config.preferred_target, None)
+  assert_eq(config.initialize_existing, false)
 }
 
 ///|
@@ -19,6 +20,25 @@ test "parse_cli_args optional flags" {
   assert_eq(config.license, Some("MIT"))
   assert_eq(config.repository_hosting, Some("gitlab.com"))
   assert_eq(config.preferred_target, Some("js"))
+  assert_eq(config.initialize_existing, false)
+}
+
+///|
+test "parse_cli_args init flag long" {
+  guard parse_cli_args(["--init", "demo"]) is Ok(config) else {
+    fail("expected parse success")
+  }
+  assert_eq(config.path, "demo")
+  assert_eq(config.initialize_existing, true)
+}
+
+///|
+test "parse_cli_args init flag short" {
+  guard parse_cli_args(["demo", "-i"]) is Ok(config) else {
+    fail("expected parse success")
+  }
+  assert_eq(config.path, "demo")
+  assert_eq(config.initialize_existing, true)
 }
 
 ///|

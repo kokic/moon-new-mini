@@ -14,6 +14,7 @@ Create a minimal **Mo**onBit **mo**dule **か**?
 
 ```sh
 momoka your-great-project
+momoka --init your-existing-project
 ```
 
 ## Help
@@ -21,12 +22,12 @@ momoka your-great-project
 ```sh
 Create a minimal MoonBit module
 
-Usage: momoka <PATH> [OPTIONS]
+Usage: momoka [OPTIONS] <PATH>
+       momoka --init [OPTIONS] <PATH>
        momoka prefs [--show]
-       momoka config [--show]
 
 Commands:
-  prefs, config            Configure default license/host/target, or print with --show
+  prefs  Configure default license/host/target, or print with --show [aliases: config]
 
 Arguments:
   <PATH>  Project directory path
@@ -35,6 +36,7 @@ Options:
   -l, --license <LICENSE>  License for moon.mod.json [default: prefs or AGPL-3.0]
       --host <HOST>        Repository hosting domain [default: prefs or github.com]
   -t, --target <TARGET>    Preferred target [default: prefs or native]
-      --show               Print current preferences for prefs/config command
+  -i, --init               Initialize in an existing directory instead of creating it
+      --show               Print current preferences for prefs / config command
   -h, --help               Print help
 ```

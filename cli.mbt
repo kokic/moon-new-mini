@@ -5,6 +5,7 @@ fn usage_text() -> String {
     #|
     #|Usage:
     #|  momoka [OPTIONS] <PATH>
+    #|  momoka --init [OPTIONS] <PATH>
     #|  momoka prefs [--show]
     #|
     #|Commands:
@@ -17,6 +18,7 @@ fn usage_text() -> String {
     #|  -l, --license <LICENSE>  License for moon.mod.json [default: prefs or AGPL-3.0]
     #|      --host <HOST>        Repository hosting domain [default: prefs or github.com]
     #|  -t, --target <TARGET>    Preferred target [default: prefs or native]
+    #|  -i, --init               Initialize in an existing directory instead of creating it
     #|      --show               Print current preferences for prefs / config command
     #|  -h, --help               Print help
     $|\{BANNER_TEXT}
@@ -29,6 +31,7 @@ priv struct CliConfig {
   license : String?
   repository_hosting : String?
   preferred_target : String?
+  initialize_existing : Bool
 }
 
 ///|
@@ -40,6 +43,7 @@ fn parse_cli_args(args : ArrayView[String]) -> Result[CliConfig, String] {
   let mut license : String? = None
   let mut repository_hosting : String? = None
   let mut preferred_target : String? = None
+  let mut initialize_existing = false
   let mut i = 0
   while i < args.length() {
     let arg = args[i]
@@ -63,6 +67,9 @@ fn parse_cli_args(args : ArrayView[String]) -> Result[CliConfig, String] {
       }
       preferred_target = Some(args[i + 1])
       i = i + 2
+    } else if arg == "--init" || arg == "-i" {
+      initialize_existing = true
+      i = i + 1
     } else if arg.has_prefix("-") {
       return Err("unknown option: \{arg}\n\{usage_text()}")
     } else if path is None {
@@ -73,7 +80,7 @@ fn parse_cli_args(args : ArrayView[String]) -> Result[CliConfig, String] {
     }
   }
   guard path is Some(path) else { return Err(usage_text()) }
-  Ok({ path, license, repository_hosting, preferred_target })
+  Ok({ path, license, repository_hosting, preferred_target, initialize_existing })
 }
 
 ///|
@@ -123,11 +130,23 @@ async fn run(args : ArrayView[String]) -> Result[String, String] {
             Some(home) => load_preferred_config(preferred_file_path(home))
             None => empty_preferred_config()
           }
-          match create_project(config, username, preferred) {
+          let result = if config.initialize_existing {
+            init_project(config, username, preferred)
+          } else {
+            create_project(config, username, preferred)
+          }
+          match result {
             Ok(project_dir) =>
-              Ok(
-                "created moon.mod.json, moon.pkg and .gitignore in \{project_dir}",
-              )
+              {
+                let action = if config.initialize_existing {
+                  "initialized"
+                } else {
+                  "created and initialized"
+                }
+                Ok(
+                  "\{action} moon.mod.json, moon.pkg and .gitignore in \{project_dir}",
+                )
+              }
             Err(err) => Err(err)
           }
         }
