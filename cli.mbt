@@ -1,7 +1,10 @@
+/// Also see: moon.mod.json - `version`
+const VERSION = "0.1.2"
+
 ///|
 fn usage_text() -> String {
   (
-    #|Create a minimal MoonBit module
+    $| Momoka \{VERSION} - Create a minimal MoonBit module
     #|
     #|Usage:
     #|  momoka [OPTIONS] <PATH>
@@ -173,3 +176,12 @@ pub async fn export_main() -> Unit {
     }
   }
 }
+
+///|
+const BANNER_TEXT : String =
+  #|  __  __                       _         
+  #| |  \/  | ___  _ __ ___   ___ | | ____ _ 
+  #| | |\/| |/ _ \| '_ ` _ \ / _ \| |/ / _` |
+  #| | |  | | (_) | | | | | | (_) |   < (_| |
+  #| |_|  |_|\___/|_| |_| |_|\___/|_|\_\__,_|
+  #|
