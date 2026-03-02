@@ -42,6 +42,15 @@ test "parse_cli_args init flag short" {
 }
 
 ///|
+test "parse_cli_args init without path uses current dir" {
+  guard parse_cli_args(["--init"]) is Ok(config) else {
+    fail("expected parse success")
+  }
+  assert_eq(config.path, ".")
+  assert_eq(config.initialize_existing, true)
+}
+
+///|
 test "parse_cli_args invalid option" {
   guard parse_cli_args(["demo", "--oops"]) is Err(_) else {
     fail("expected parse failure")

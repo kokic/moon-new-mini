@@ -8,7 +8,7 @@ fn usage_text() -> String {
     #|
     #|Usage:
     #|  momoka [OPTIONS] <PATH>
-    #|  momoka --init [OPTIONS] <PATH>
+    #|  momoka --init [OPTIONS] [PATH]
     #|  momoka prefs [--show]
     #|
     #|Commands:
@@ -82,8 +82,24 @@ fn parse_cli_args(args : ArrayView[String]) -> Result[CliConfig, String] {
       return Err("unexpected positional argument: \{arg}\n\{usage_text()}")
     }
   }
-  guard path is Some(path) else { return Err(usage_text()) }
-  Ok({ path, license, repository_hosting, preferred_target, initialize_existing })
+  let resolved_path = match path {
+    Some(path) => path
+    None =>
+      if initialize_existing {
+        "."
+      } else {
+        return Err(usage_text())
+      }
+  }
+  Ok(
+    {
+      path: resolved_path,
+      license,
+      repository_hosting,
+      preferred_target,
+      initialize_existing,
+    },
+  )
 }
 
 ///|

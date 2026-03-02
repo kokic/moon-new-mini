@@ -23,7 +23,7 @@ momoka --init your-existing-project
 Create a minimal MoonBit module
 
 Usage: momoka [OPTIONS] <PATH>
-       momoka --init [OPTIONS] <PATH>
+       momoka --init [OPTIONS] [PATH]
        momoka prefs [--show]
 
 Commands:
