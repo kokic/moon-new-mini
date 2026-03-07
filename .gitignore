@@ -4,4 +4,4 @@ target/
 .mooncakes/
 .moonagent/
 .local/
-release.nu
+release.ps1
